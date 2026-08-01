@@ -3,10 +3,10 @@ import { useWeather } from "../hooks";
 
 // eslint-disable-next-line react/prop-types
 const WeatherProvider = ({ children }) => {
-  const { weatherData, error, loading } = useWeather();
+  const { weatherData, forecastData, error, loading } = useWeather();
 
   return (
-    <WeatherContext.Provider value={{ weatherData, error, loading }}>
+    <WeatherContext.Provider value={{ weatherData, forecastData, error, loading }}>
       {children}
     </WeatherContext.Provider>
   );

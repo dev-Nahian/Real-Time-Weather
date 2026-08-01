@@ -17,8 +17,8 @@ export default function AddToFavourite() {
   //  Effects
   useEffect(()=>{
     const found = favourites.find((fav) => fav.location === location)
-    setFavourite(found)
-  },[])
+    setFavourite(!!found)
+  },[favourites, location])
 
   // Handler
   function handleFavourites() {

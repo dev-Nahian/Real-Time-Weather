@@ -1,6 +1,7 @@
 import { useContext } from "react";
-import { WeatherContext } from "../../context";
-import { getFormattedDate } from "../../utlis/date-utils";
+import { WeatherContext, UnitContext } from "../../context";
+import { getFormattedDate } from "../../utils/date-utils";
+import { convertTemp } from "../../utils/temp-utils";
 
 import PinIcon from "../../assets/pin.svg";
 
@@ -13,6 +14,7 @@ import ThunderIcon from "../../assets/thunder.svg";
 
 export default function WeatherHeadLine() {
   const { weatherData } = useContext(WeatherContext);
+  const { unit } = useContext(UnitContext);
 
   const { climate, location, temperature, time } = weatherData;
 
@@ -46,7 +48,7 @@ export default function WeatherHeadLine() {
         <img src={getWeatherIcon(climate)} alt="climate" />
         <div className="max-md:flex items-center max-md:space-x-4">
           <h1 className="text-[60px] lg:text-[80px] xl:text-[100px] leading-none md:mb-4">
-            {Math.round(temperature)}°
+            {convertTemp(temperature, unit)}°
           </h1>
           <div className="flex items-center space-x-4 md:mb-4">
             <img src={PinIcon} />

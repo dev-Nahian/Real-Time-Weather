@@ -5,8 +5,8 @@ import { LocationContext } from "../context";
 const LocationProvider = ({ children }) => {
   const [selectedLocation, setSelectedLocation] = useState({
     location: "",
-    latitude: 0,
-    longitude: 0,
+    latitude: null,
+    longitude: null,
   });
   return (
     <LocationContext.Provider value={{selectedLocation, setSelectedLocation}}>{children}</LocationContext.Provider>

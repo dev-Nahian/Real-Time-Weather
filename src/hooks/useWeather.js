@@ -1,6 +1,47 @@
 import { useEffect, useState, useContext } from "react";
 import { LocationContext } from "../context";
 
+const processForecastData = (list) => {
+  const dailyForecasts = {};
+  list.forEach((item) => {
+    // Extract date string YYYY-MM-DD
+    const date = item.dt_txt.split(" ")[0];
+    if (!dailyForecasts[date]) {
+      dailyForecasts[date] = {
+        date: date,
+        temps: [],
+        weather: item.weather[0],
+        dt: item.dt,
+      };
+    }
+    dailyForecasts[date].temps.push(item.main.temp);
+    // Prefer mid-day forecast for the representative climate icon/text
+    if (item.dt_txt.includes("12:00:00")) {
+      dailyForecasts[date].weather = item.weather[0];
+      dailyForecasts[date].dt = item.dt;
+    }
+  });
+
+  // Convert to array, compute min/max/average, and take 5 days
+  return Object.values(dailyForecasts)
+    .map((day) => {
+      const minTemp = Math.min(...day.temps);
+      const maxTemp = Math.max(...day.temps);
+      const avgTemp = day.temps.reduce((sum, t) => sum + t, 0) / day.temps.length;
+      return {
+        date: day.date,
+        dt: day.dt,
+        temp: avgTemp,
+        minTemp: minTemp,
+        maxTemp: maxTemp,
+        climate: day.weather.main,
+        description: day.weather.description,
+        icon: day.weather.icon,
+      };
+    })
+    .slice(0, 5);
+};
+
 const useWeather = () => {
   const [weatherData, setWeatherData] = useState({
     location: "",
@@ -14,7 +55,13 @@ const useWeather = () => {
     time: "",
     longitude: "",
     latitude: "",
+    pressure: "",
+    visibility: "",
+    sunrise: "",
+    sunset: "",
   });
+
+  const [forecastData, setForecastData] = useState([]);
 
   const [loading, setLoading] = useState({
     state: false,
@@ -28,47 +75,59 @@ const useWeather = () => {
   const fetchWeatherData = async (latitude, longitude) => {
     try {
       setLoading({
-        ...loading,
         state: true,
-        message: "Fetching weather data",
+        message: "Fetching weather data...",
       });
-      // TODO: Make the fetch call
+      setError(null);
 
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${
-          import.meta.env.VITE_WEATHER_API_KEY
-        }&units=metric`
-      );
+      const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+      
+      // Fetch both endpoints concurrently
+      const [weatherResponse, forecastResponse] = await Promise.all([
+        fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+        ),
+        fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+        ),
+      ]);
 
-      if (!response.ok) {
-        const errorMessage = `Fetching weather data failed: ${response.status}`;
-        throw new Error(errorMessage);
+      if (!weatherResponse.ok) {
+        throw new Error(`Current weather request failed: ${weatherResponse.status}`);
+      }
+      if (!forecastResponse.ok) {
+        throw new Error(`Forecast request failed: ${forecastResponse.status}`);
       }
 
-      const data = await response.json();
+      const weatherDataRaw = await weatherResponse.json();
+      const forecastDataRaw = await forecastResponse.json();
 
-      const updateWeatherData = {
-        ...weatherData,
-        location: data?.name,
-        climate: data?.weather[0]?.main,
-        temperature: data?.main?.temp,
-        maxTemperature: data.main?.temp_max,
-        minTemperature: data.main?.temp_min,
-        humidity: data.main?.humidity,
-        cloudPercentage: data?.clouds?.all,
-        wind: data?.wind?.speed,
-        time: data?.dt,
+      setWeatherData({
+        location: weatherDataRaw?.name,
+        climate: weatherDataRaw?.weather[0]?.main,
+        temperature: weatherDataRaw?.main?.temp,
+        maxTemperature: weatherDataRaw?.main?.temp_max,
+        minTemperature: weatherDataRaw?.main?.temp_min,
+        humidity: weatherDataRaw?.main?.humidity,
+        cloudPercentage: weatherDataRaw?.clouds?.all,
+        wind: weatherDataRaw?.wind?.speed,
+        time: weatherDataRaw?.dt,
         longitude: longitude,
         latitude: latitude,
-      };
+        pressure: weatherDataRaw?.main?.pressure,
+        visibility: weatherDataRaw?.visibility,
+        sunrise: weatherDataRaw?.sys?.sunrise,
+        sunset: weatherDataRaw?.sys?.sunset,
+      });
 
-      setWeatherData(updateWeatherData);
+      const processedForecast = processForecastData(forecastDataRaw.list);
+      setForecastData(processedForecast);
 
-    } catch (error) {
-      setError(error);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to load weather data.");
     } finally {
       setLoading({
-        ...loading,
         state: false,
         message: "",
       });
@@ -77,28 +136,34 @@ const useWeather = () => {
 
   useEffect(() => {
     setLoading({
-      ...loading,
       state: true,
       message: "Finding location...",
     });
 
-    if (selectedLocation.latitude && selectedLocation.longitude) {
-      fetchWeatherData(
-        selectedLocation.latitude, 
-        selectedLocation.longitude
-      );
+    if (selectedLocation.latitude !== null && selectedLocation.longitude !== null) {
+      fetchWeatherData(selectedLocation.latitude, selectedLocation.longitude);
     } else {
-      navigator.geolocation.getCurrentPosition(function (position) {
-        fetchWeatherData(
-          position.coords.latitude, 
-          position.coords.longitude
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            fetchWeatherData(position.coords.latitude, position.coords.longitude);
+          },
+          (err) => {
+            console.warn("Geolocation failed or denied. Falling back to default: Dhaka", err);
+            // Default to Dhaka, Bangladesh
+            fetchWeatherData(23.8103, 90.4125);
+          }
         );
-      });
+      } else {
+        console.warn("Geolocation not supported. Falling back to default: Dhaka");
+        fetchWeatherData(23.8103, 90.4125);
+      }
     }
   }, [selectedLocation.latitude, selectedLocation.longitude]);
 
   return {
     weatherData,
+    forecastData,
     error,
     loading,
   };

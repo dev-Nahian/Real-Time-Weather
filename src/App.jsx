@@ -5,16 +5,19 @@ import {
   WeatherProvider,
   FavouriteProvider,
   LocationProvider,
+  UnitProvider,
 } from "./provider";
 
 function App() {
   return (
     <LocationProvider>
-      <WeatherProvider>
-        <FavouriteProvider>
-          <Page/>
-        </FavouriteProvider>
-      </WeatherProvider>
+      <UnitProvider>
+        <WeatherProvider>
+          <FavouriteProvider>
+            <Page />
+          </FavouriteProvider>
+        </WeatherProvider>
+      </UnitProvider>
     </LocationProvider>
   );
 }

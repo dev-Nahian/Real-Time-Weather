@@ -1,8 +1,9 @@
 import { useState } from "react";
 import Favourite from "./Favourite";
-import FovouriteListModal from "./FovouriteListModal";
+import FavouriteListModal from "./FavouriteListModal";
 import Logo from "./Logo";
 import Search from "./Search";
+import UnitToggler from "./UnitToggler";
 
 export default function Header() {
 
@@ -20,7 +21,9 @@ export default function Header() {
 
           <Favourite onShow= {()=> setShowFavModal(!showFavModal)} />
 
-          {showFavModal && <FovouriteListModal /> }
+          <UnitToggler />
+
+          {showFavModal && <FavouriteListModal onClose={() => setShowFavModal(false)} /> }
           
         </div>
       </nav>
