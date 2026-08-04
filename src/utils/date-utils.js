@@ -1,13 +1,16 @@
-function getFormattedDate(value, type, inMS) {
+function getFormattedDate(value, type, inMS, timezoneOffsetSec) {
   if (!type) return value;
 
-  if (!inMS) {
-    value = value * 1000;
+  let valMs = inMS ? value : value * 1000;
+  const useUTC = typeof timezoneOffsetSec === "number";
+
+  if (useUTC) {
+    valMs += timezoneOffsetSec * 1000;
   }
 
-  const date = new Date(value);
+  const date = new Date(valMs);
 
-  let options;
+  let options = {};
 
   if (type === "date") {
     options = {
@@ -21,6 +24,10 @@ function getFormattedDate(value, type, inMS) {
       hour: "numeric",
       minute: "numeric",
     };
+  }
+
+  if (useUTC) {
+    options.timeZone = "UTC";
   }
 
   return new Intl.DateTimeFormat("en-us", options).format(date);

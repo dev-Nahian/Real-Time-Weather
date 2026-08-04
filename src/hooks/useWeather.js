@@ -12,13 +12,23 @@ const processForecastData = (list) => {
         temps: [],
         weather: item.weather[0],
         dt: item.dt,
+        humidity: item.main.humidity,
+        cloudPercentage: item.clouds?.all,
+        wind: item.wind?.speed,
+        pressure: item.main.pressure,
+        visibility: item.visibility,
       };
     }
     dailyForecasts[date].temps.push(item.main.temp);
-    // Prefer mid-day forecast for the representative climate icon/text
+    // Prefer mid-day forecast for the representative climate icon/text and details
     if (item.dt_txt.includes("12:00:00")) {
       dailyForecasts[date].weather = item.weather[0];
       dailyForecasts[date].dt = item.dt;
+      dailyForecasts[date].humidity = item.main.humidity;
+      dailyForecasts[date].cloudPercentage = item.clouds?.all;
+      dailyForecasts[date].wind = item.wind?.speed;
+      dailyForecasts[date].pressure = item.main.pressure;
+      dailyForecasts[date].visibility = item.visibility;
     }
   });
 
@@ -37,6 +47,11 @@ const processForecastData = (list) => {
         climate: day.weather.main,
         description: day.weather.description,
         icon: day.weather.icon,
+        humidity: day.humidity,
+        cloudPercentage: day.cloudPercentage,
+        wind: day.wind,
+        pressure: day.pressure,
+        visibility: day.visibility,
       };
     })
     .slice(0, 5);
@@ -53,6 +68,7 @@ const useWeather = () => {
     cloudPercentage: "",
     wind: "",
     time: "",
+    timezone: null,
     longitude: "",
     latitude: "",
     pressure: "",
@@ -112,6 +128,7 @@ const useWeather = () => {
         cloudPercentage: weatherDataRaw?.clouds?.all,
         wind: weatherDataRaw?.wind?.speed,
         time: weatherDataRaw?.dt,
+        timezone: weatherDataRaw?.timezone,
         longitude: longitude,
         latitude: latitude,
         pressure: weatherDataRaw?.main?.pressure,

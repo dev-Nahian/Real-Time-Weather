@@ -24,6 +24,7 @@ export default function WeatherCondition() {
     visibility,
     sunrise,
     sunset,
+    timezone,
   } = weatherData;
 
   // Format visibility in km (OpenWeatherMap returns it in meters)
@@ -116,7 +117,7 @@ export default function WeatherCondition() {
           <div>
             <p className="text-[11px] text-white/55 uppercase font-semibold">Sunrise</p>
             <p className="text-sm lg:text-base font-bold text-amber-400 mt-0.5">
-              {sunrise ? getFormattedDate(sunrise, "time", false) : "N/A"}
+              {sunrise ? getFormattedDate(sunrise, "time", false, timezone) : "N/A"}
             </p>
           </div>
           <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -130,7 +131,7 @@ export default function WeatherCondition() {
           <div>
             <p className="text-[11px] text-white/55 uppercase font-semibold">Sunset</p>
             <p className="text-sm lg:text-base font-bold text-orange-400 mt-0.5">
-              {sunset ? getFormattedDate(sunset, "time", false) : "N/A"}
+              {sunset ? getFormattedDate(sunset, "time", false, timezone) : "N/A"}
             </p>
           </div>
           <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

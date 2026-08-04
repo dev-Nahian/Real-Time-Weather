@@ -13,10 +13,10 @@ import RainIcon from "../../assets/rainy.svg";
 import ThunderIcon from "../../assets/thunder.svg";
 
 export default function WeatherHeadLine() {
-  const { weatherData } = useContext(WeatherContext);
+  const { weatherData, selectedDay, setSelectedDay } = useContext(WeatherContext);
   const { unit } = useContext(UnitContext);
 
-  const { climate, location, temperature, time } = weatherData;
+  const { climate, location, temperature, time, timezone } = weatherData;
 
   function getWeatherIcon(climate) {
     switch (climate) {
@@ -56,9 +56,19 @@ export default function WeatherHeadLine() {
           </div>
         </div>
       </div>
-      <p className="text-sm lg:text-lg">
-        {getFormattedDate(time, "time", false)} -{" "}
-        {getFormattedDate(time, "date", false)}
+      <p className="text-sm lg:text-lg flex flex-wrap items-center gap-2">
+        <span>
+          {getFormattedDate(time, "time", false, timezone)} -{" "}
+          {getFormattedDate(time, "date", false, timezone)}
+        </span>
+        {selectedDay && (
+          <button
+            onClick={() => setSelectedDay(null)}
+            className="px-2 py-0.5 text-xs font-semibold bg-sky-500/80 hover:bg-sky-600 rounded text-white transition-all cursor-pointer shadow-sm hover:shadow active:scale-95"
+          >
+            Show Current Weather
+          </button>
+        )}
       </p>
     </div>
   );
